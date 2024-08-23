@@ -265,7 +265,7 @@
           "variables": {
             "containerRegistryName": "[format('ctfdacr{0}', uniqueString(resourceGroup().id))]",
             "ctfdImageName": "ctfd-azure-cert:latest",
-            "ctfdAzureRepo": "https://github.com/Azure-Samples/ctfd-azure-paas.git"
+            "ctfdAzureRepo": "https://github.com/BlackSud0/ctfd-azure-paas.git"
           },
           "resources": [
             {
