@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.20.4.51522",
-      "templateHash": "14029566981341933198"
+      "version": "0.27.1.19265",
+      "templateHash": "13219936566428305885"
     }
   },
   "parameters": {
@@ -66,18 +66,16 @@
         "description": "Database administrator password. Minimum 8 characters and maximum 128 characters. Password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers, and non-alphanumeric characters."
       }
     },
-    "databaseVCores": {
-      "type": "int",
-      "defaultValue": 2,
+    "mysqlType": {
+      "type": "string",
+      "defaultValue": "Development",
       "allowedValues": [
-        2,
-        4,
-        8,
-        16,
-        32
+        "Development",
+        "SmallMedium",
+        "BusinessCritical"
       ],
       "metadata": {
-        "description": "Database vCores count"
+        "description": "MySQL Type"
       }
     },
     "appServicePlanSkuName": {
@@ -114,7 +112,8 @@
     "ctfDatabaseSecretName": "ctfd-db-url",
     "virtualNetworkName": "ctf-vnet",
     "internalResourcesSubnetName": "internal_resources_subnet",
-    "publicResourcesSubnetName": "public_resources_subnet"
+    "publicResourcesSubnetName": "public_resources_subnet",
+    "databaseResourcesSubnetName": "database_resources_subnet"
   },
   "resources": [
     {
@@ -143,8 +142,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "17542179341859051423"
+              "version": "0.27.1.19265",
+              "templateHash": "5458687641602133277"
             }
           },
           "parameters": {
@@ -227,8 +226,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "8590724430541125839"
+              "version": "0.27.1.19265",
+              "templateHash": "8768583701407300451"
             }
           },
           "parameters": {
@@ -415,6 +414,9 @@
           },
           "publicResourcesSubnetName": {
             "value": "[variables('publicResourcesSubnetName')]"
+          },
+          "databaseResourcesSubnetName": {
+            "value": "[variables('databaseResourcesSubnetName')]"
           }
         },
         "template": {
@@ -423,8 +425,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "6409999437104788262"
+              "version": "0.27.1.19265",
+              "templateHash": "12084021275693225961"
             }
           },
           "parameters": {
@@ -451,12 +453,19 @@
               "metadata": {
                 "description": "Name of the public resources subnet"
               }
+            },
+            "databaseResourcesSubnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the database resources subnet"
+              }
             }
           },
           "variables": {
             "virtualNetworkCIDR": "10.200.0.0/16",
             "publicResourcesSubnetCIDR": "10.200.1.0/26",
-            "internalResourcesSubnetCIDR": "10.200.2.0/28"
+            "internalResourcesSubnetCIDR": "10.200.2.0/28",
+            "databaseResourcesSubnetCIDR": "10.200.3.0/28"
           },
           "resources": [
             {
@@ -484,7 +493,7 @@
                       "addressPrefix": "[variables('publicResourcesSubnetCIDR')]",
                       "delegations": [
                         {
-                          "name": "delegation",
+                          "name": "dlg-Microsoft.Web-serverfarms",
                           "properties": {
                             "serviceName": "Microsoft.Web/serverfarms"
                           }
@@ -492,11 +501,37 @@
                       ],
                       "privateEndpointNetworkPolicies": "Enabled"
                     }
+                  },
+                  {
+                    "name": "[parameters('databaseResourcesSubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[variables('databaseResourcesSubnetCIDR')]",
+                      "delegations": [
+                        {
+                          "name": "dlg-Microsoft.DBforMySQL-flexibleServers",
+                          "properties": {
+                            "serviceName": "Microsoft.DBforMySQL/flexibleServers"
+                          }
+                        }
+                      ],
+                      "privateEndpointNetworkPolicies": "Enabled",
+                      "privateLinkServiceNetworkPolicies": "Enabled"
+                    }
                   }
                 ]
               }
             }
-          ]
+          ],
+          "outputs": {
+            "virtualNetworkId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+            },
+            "databaseResourcesSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName')), '2020-06-01').subnets[2].id]"
+            }
+          }
         }
       },
       "metadata": {
@@ -562,8 +597,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "13281464707201247557"
+              "version": "0.27.1.19265",
+              "templateHash": "12758198425395547597"
             }
           },
           "parameters": {
@@ -864,8 +899,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "1298700126924227810"
+              "version": "0.27.1.19265",
+              "templateHash": "9948841544273206804"
             }
           },
           "parameters": {
@@ -1035,8 +1070,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.20.4.51522",
-                      "templateHash": "8858037484684946095"
+                      "version": "0.27.1.19265",
+                      "templateHash": "2126031309601035790"
                     }
                   },
                   "parameters": {
@@ -1216,8 +1251,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "7004815263978485944"
+              "version": "0.27.1.19265",
+              "templateHash": "8910034163638769424"
             }
           },
           "parameters": {
@@ -1366,8 +1401,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.20.4.51522",
-                      "templateHash": "8858037484684946095"
+                      "version": "0.27.1.19265",
+                      "templateHash": "2126031309601035790"
                     }
                   },
                   "parameters": {
@@ -1511,8 +1546,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.20.4.51522",
-                      "templateHash": "16981194048327378693"
+                      "version": "0.27.1.19265",
+                      "templateHash": "7790741183374077619"
                     }
                   },
                   "parameters": {
@@ -1565,7 +1600,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "mariaDbDeploy",
+      "name": "mysqlDbDeploy",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -1578,8 +1613,11 @@
           "administratorLoginPassword": {
             "value": "[parameters('administratorLoginPassword')]"
           },
-          "internalResourcesSubnetName": {
-            "value": "[variables('internalResourcesSubnetName')]"
+          "vnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnetDeploy'), '2022-09-01').outputs.virtualNetworkId.value]"
+          },
+          "databaseSubnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnetDeploy'), '2022-09-01').outputs.databaseResourcesSubnetId.value]"
           },
           "virtualNetworkName": {
             "value": "[variables('virtualNetworkName')]"
@@ -1596,8 +1634,8 @@
           "keyVaultName": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVaultDeploy'), '2022-09-01').outputs.keyVaultName.value]"
           },
-          "databaseVCores": {
-            "value": "[parameters('databaseVCores')]"
+          "mysqlWorkloadType": {
+            "value": "[parameters('mysqlType')]"
           },
           "logAnalyticsWorkspaceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalyticsDeploy'), '2022-09-01').outputs.logAnalyticsWorkspaceId.value]"
@@ -1609,8 +1647,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.20.4.51522",
-              "templateHash": "6614454913510937586"
+              "version": "0.27.1.19265",
+              "templateHash": "2494312124174264876"
             }
           },
           "parameters": {
@@ -1634,22 +1672,22 @@
                 "description": "Database administrator password"
               }
             },
-            "databaseVCores": {
-              "type": "int",
-              "metadata": {
-                "description": "Database vCores count"
-              }
-            },
             "virtualNetworkName": {
               "type": "string",
               "metadata": {
                 "description": "Name of the VNet"
               }
             },
-            "internalResourcesSubnetName": {
+            "vnetId": {
               "type": "string",
               "metadata": {
-                "description": "Name of the internal resources subnet"
+                "description": "ID of the vnet"
+              }
+            },
+            "databaseSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "ID of the subnet"
               }
             },
             "keyVaultName": {
@@ -1675,83 +1713,125 @@
               "metadata": {
                 "description": "Log Anaytics Workspace Id"
               }
+            },
+            "mysqlWorkloadType": {
+              "type": "string",
+              "allowedValues": [
+                "Development",
+                "SmallMedium",
+                "BusinessCritical"
+              ],
+              "metadata": {
+                "description": "MySql Workload Type"
+              }
             }
           },
           "variables": {
-            "mariaServerName": "[format('ctfd-mariadb-{0}', uniqueString(resourceGroup().id))]"
+            "mysqlServerName": "[format('ctfd-mysql-{0}', uniqueString(resourceGroup().id))]",
+            "tier": "[if(equals(parameters('mysqlWorkloadType'), 'Development'), 'Burstable', if(equals(parameters('mysqlWorkloadType'), 'SmallMedium'), 'GeneralPurpose', 'MemoryOptimized'))]",
+            "skuName": "[if(equals(parameters('mysqlWorkloadType'), 'Development'), 'Standard_B1ms', if(equals(parameters('mysqlWorkloadType'), 'SmallMedium'), 'Standard_E2ads_v5', 'Standard_E2ads_v5'))]",
+            "storageSizeGB": "[if(equals(parameters('mysqlWorkloadType'), 'Development'), 20, 128)]",
+            "iops": "[if(equals(parameters('mysqlWorkloadType'), 'Development'), 360, 2000)]"
           },
           "resources": [
             {
-              "type": "Microsoft.DBforMariaDB/servers/configurations",
-              "apiVersion": "2018-06-01",
-              "name": "[format('{0}/{1}', variables('mariaServerName'), 'character_set_server')]",
+              "type": "Microsoft.DBforMySQL/flexibleServers",
+              "apiVersion": "2023-10-01-preview",
+              "name": "[variables('mysqlServerName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[variables('skuName')]",
+                "tier": "[variables('tier')]"
+              },
               "properties": {
-                "source": "user-override",
-                "value": "utf8mb4"
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "storage": {
+                  "autoGrow": "Enabled",
+                  "iops": "[variables('iops')]",
+                  "storageSizeGB": "[variables('storageSizeGB')]"
+                },
+                "network": "[if(parameters('vnet'), createObject('delegatedSubnetResourceId', parameters('databaseSubnetId'), 'privateDnsZoneResourceId', resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.mysql.database.azure.com', variables('mysqlServerName'))), 'publicNetworkAccess', 'Disabled'), createObject('publicNetworkAccess', 'Enabled'))]",
+                "createMode": "Default",
+                "version": "8.0.21",
+                "backup": {
+                  "backupRetentionDays": 7,
+                  "geoRedundantBackup": "Disabled"
+                },
+                "highAvailability": {
+                  "mode": "Disabled"
+                }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
+                "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.mysql.database.azure.com', variables('mysqlServerName')))]",
+                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', format('{0}.private.mysql.database.azure.com', variables('mysqlServerName')), parameters('virtualNetworkName'))]"
               ]
             },
             {
-              "type": "Microsoft.DBforMariaDB/servers/configurations",
-              "apiVersion": "2018-06-01",
-              "name": "[format('{0}/{1}', variables('mariaServerName'), 'collation_server')]",
+              "type": "Microsoft.DBforMySQL/flexibleServers/configurations",
+              "apiVersion": "2023-06-30",
+              "name": "[format('{0}/{1}', variables('mysqlServerName'), 'collation_server')]",
               "properties": {
                 "source": "user-override",
-                "value": "utf8mb4_unicode_ci"
+                "value": "UTF8MB4_UNICODE_CI"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
+                "[resourceId('Microsoft.DBforMySQL/flexibleServers', variables('mysqlServerName'))]"
               ]
             },
             {
-              "type": "Microsoft.DBforMariaDB/servers/configurations",
-              "apiVersion": "2018-06-01",
-              "name": "[format('{0}/{1}', variables('mariaServerName'), 'wait_timeout')]",
+              "type": "Microsoft.DBforMySQL/flexibleServers/databases",
+              "apiVersion": "2023-06-30",
+              "name": "[format('{0}/{1}', variables('mysqlServerName'), 'ctfd')]",
               "properties": {
-                "source": "user-override",
-                "value": "28800"
+                "charset": "utf8mb4",
+                "collation": "utf8mb4_unicode_ci"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
+                "[resourceId('Microsoft.DBforMySQL/flexibleServers', variables('mysqlServerName'))]"
               ]
             },
             {
               "condition": "[not(parameters('vnet'))]",
-              "type": "Microsoft.DBforMariaDB/servers/firewallRules",
-              "apiVersion": "2018-06-01",
-              "name": "[format('{0}/{1}', variables('mariaServerName'), 'AllowAllWindowsAzureIps')]",
+              "type": "Microsoft.DBforMySQL/flexibleServers/firewallRules",
+              "apiVersion": "2023-06-30",
+              "name": "[format('{0}/{1}', variables('mysqlServerName'), 'AllowAllAzureServicesAndResourcesWithinAzureIps_2024-5-24_16-27-0')]",
               "properties": {
                 "startIpAddress": "0.0.0.0",
                 "endIpAddress": "0.0.0.0"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
+                "[resourceId('Microsoft.DBforMySQL/flexibleServers', variables('mysqlServerName'))]"
               ]
             },
             {
-              "type": "Microsoft.DBforMariaDB/servers",
-              "apiVersion": "2018-06-01",
-              "name": "[variables('mariaServerName')]",
-              "location": "[parameters('location')]",
-              "sku": {
-                "name": "[format('GP_Gen5_{0}', parameters('databaseVCores'))]",
-                "size": "5120"
-              },
+              "condition": "[parameters('vnet')]",
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}.private.mysql.database.azure.com', variables('mysqlServerName'))]",
+              "location": "global"
+            },
+            {
+              "condition": "[parameters('vnet')]",
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}/{1}', format('{0}.private.mysql.database.azure.com', variables('mysqlServerName')), parameters('virtualNetworkName'))]",
+              "location": "global",
               "properties": {
-                "createMode": "Default",
-                "version": "10.3",
-                "administratorLogin": "[parameters('administratorLogin')]",
-                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
-                "publicNetworkAccess": "[if(parameters('vnet'), 'Disabled', 'Enabled')]"
-              }
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                  "id": "[parameters('vnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.mysql.database.azure.com', variables('mysqlServerName')))]"
+              ]
             },
             {
               "type": "Microsoft.Insights/diagnosticSettings",
               "apiVersion": "2021-05-01-preview",
-              "scope": "[format('Microsoft.DBforMariaDB/servers/{0}', variables('mariaServerName'))]",
-              "name": "[format('{0}-diagnostics', variables('mariaServerName'))]",
+              "scope": "[format('Microsoft.DBforMySQL/flexibleServers/{0}', variables('mysqlServerName'))]",
+              "name": "[format('{0}-diagnostics', variables('mysqlServerName'))]",
               "properties": {
                 "logs": [
                   {
@@ -1767,171 +1847,13 @@
                 "workspaceId": "[parameters('logAnalyticsWorkspaceId')]"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
-              ]
-            },
-            {
-              "condition": "[parameters('vnet')]",
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "mariaDbPrivateEndpointDeploy",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "virtualNetworkName": {
-                    "value": "[parameters('virtualNetworkName')]"
-                  },
-                  "subnetName": {
-                    "value": "[parameters('internalResourcesSubnetName')]"
-                  },
-                  "resuorceId": {
-                    "value": "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
-                  },
-                  "resuorceGroupId": {
-                    "value": "mariadbServer"
-                  },
-                  "privateDnsZoneName": {
-                    "value": "privatelink.mariadb.database.azure.com"
-                  },
-                  "privateEndpointName": {
-                    "value": "mariadb_private_endpoint"
-                  },
-                  "location": {
-                    "value": "[parameters('location')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.20.4.51522",
-                      "templateHash": "8858037484684946095"
-                    }
-                  },
-                  "parameters": {
-                    "virtualNetworkName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Name of the VNet"
-                      }
-                    },
-                    "subnetName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Name of the subnet"
-                      }
-                    },
-                    "resuorceId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Id of the resource"
-                      }
-                    },
-                    "resuorceGroupId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Group Id of the resource"
-                      }
-                    },
-                    "privateDnsZoneName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Name of dns zone"
-                      }
-                    },
-                    "privateEndpointName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Name of private endpoint"
-                      }
-                    },
-                    "location": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Location for all resources."
-                      }
-                    }
-                  },
-                  "resources": [
-                    {
-                      "type": "Microsoft.Network/privateEndpoints",
-                      "apiVersion": "2021-05-01",
-                      "name": "[parameters('privateEndpointName')]",
-                      "location": "[parameters('location')]",
-                      "properties": {
-                        "subnet": {
-                          "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"
-                        },
-                        "privateLinkServiceConnections": [
-                          {
-                            "name": "[parameters('privateEndpointName')]",
-                            "properties": {
-                              "privateLinkServiceId": "[parameters('resuorceId')]",
-                              "groupIds": [
-                                "[parameters('resuorceGroupId')]"
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "Microsoft.Network/privateDnsZones",
-                      "apiVersion": "2020-06-01",
-                      "name": "[parameters('privateDnsZoneName')]",
-                      "location": "global",
-                      "properties": {}
-                    },
-                    {
-                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-                      "apiVersion": "2020-06-01",
-                      "name": "[format('{0}/{1}', parameters('privateDnsZoneName'), format('{0}-link', parameters('privateDnsZoneName')))]",
-                      "location": "global",
-                      "properties": {
-                        "registrationEnabled": false,
-                        "virtualNetwork": {
-                          "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Network/privateDnsZones', parameters('privateDnsZoneName'))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
-                      "apiVersion": "2021-05-01",
-                      "name": "[format('{0}/{1}', parameters('privateEndpointName'), 'default')]",
-                      "properties": {
-                        "privateDnsZoneConfigs": [
-                          {
-                            "name": "config1",
-                            "properties": {
-                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', parameters('privateDnsZoneName'))]"
-                            }
-                          }
-                        ]
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Network/privateDnsZones', parameters('privateDnsZoneName'))]",
-                        "[resourceId('Microsoft.Network/privateEndpoints', parameters('privateEndpointName'))]"
-                      ]
-                    }
-                  ]
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.DBforMariaDB/servers', variables('mariaServerName'))]"
+                "[resourceId('Microsoft.DBforMySQL/flexibleServers', variables('mysqlServerName'))]"
               ]
             },
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "mariaDbKeyDeploy",
+              "name": "sqlDbKeyDeploy",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1945,7 +1867,7 @@
                     "value": "[parameters('ctfDbSecretName')]"
                   },
                   "secretValue": {
-                    "value": "[format('mysql+pymysql://{0}@{1}:{2}@{3}.mariadb.database.azure.com/ctfd?ssl_ca=/opt/certificates/DigiCertGlobalRootG2.crt.pem', parameters('administratorLogin'), variables('mariaServerName'), parameters('administratorLoginPassword'), variables('mariaServerName'))]"
+                    "value": "[format('mysql+pymysql://{0}:{1}@{2}.mysql.database.azure.com/ctfd?ssl_ca=/opt/certificates/DigiCertGlobalRootCA.crt.pem', parameters('administratorLogin'), parameters('administratorLoginPassword'), variables('mysqlServerName'))]"
                   }
                 },
                 "template": {
@@ -1954,8 +1876,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.20.4.51522",
-                      "templateHash": "16981194048327378693"
+                      "version": "0.27.1.19265",
+                      "templateHash": "7790741183374077619"
                     }
                   },
                   "parameters": {
@@ -1996,10 +1918,11 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'keyVaultDeploy')]",
-        "[resourceId('Microsoft.Resources/deployments', 'logAnalyticsDeploy')]"
+        "[resourceId('Microsoft.Resources/deployments', 'logAnalyticsDeploy')]",
+        "[resourceId('Microsoft.Resources/deployments', 'vnetDeploy')]"
       ],
       "metadata": {
-        "description": "Deploys Azure Database for MariaDB and a Key Vault secret with its connection string"
+        "description": "Deploys Azure Database for MySql and a Key Vault secret with its connection string"
       }
     }
   ]
