@@ -47,7 +47,7 @@ var tier = mysqlWorkloadType == 'Development'
   : mysqlWorkloadType == 'SmallMedium' ? 'GeneralPurpose' : 'MemoryOptimized'
 var skuName = mysqlWorkloadType == 'Development'
   ? 'Standard_B1ms'
-  : mysqlWorkloadType == 'SmallMedium' ? 'Standard_E2ads_v5' : 'Standard_E2ads_v5'
+  : mysqlWorkloadType == 'SmallMedium' ? 'Standard_E2ads_v5' : 'Standard_E4ds_v4'
 var storageSizeGB = mysqlWorkloadType == 'Development' ? 20 : 128
 var iops = mysqlWorkloadType == 'Development' ? 360 : 2000
 
@@ -78,7 +78,7 @@ resource mysqlDbServer 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview'
         }
 
     createMode: 'Default'
-    version: '8.0.21'
+    version: '8.0'
     backup: {
       backupRetentionDays: 7
       geoRedundantBackup: 'Disabled'
